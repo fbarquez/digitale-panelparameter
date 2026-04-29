@@ -1,0 +1,2008 @@
+<!DOCTYPE html>
+<!-- Sitio web desarrollado por fbarquez. -->
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="author" content="fbarquez" />
+  <title>Digitale Prozessanzeigen</title>
+  <style>
+    /* Base visual del sitio desarrollada y mantenida por fbarquez. */
+    :root {
+      --surface: #ffffff;
+      --surface-soft: #f7f9fb;
+      --surface-blue: #e7fbf9;
+      --surface-magenta: #fff1f8;
+      --text: #08040b;
+      --muted: #4f5561;
+      --line: #d9e4e7;
+      --line-strong: #a9bcc1;
+      --primary: #00b6ad;
+      --primary-dark: #008781;
+      --accent: #f60083;
+      --dark: #08040b;
+      --green: #00a86b;
+      --yellow: #ffd166;
+      --red: #d62828;
+      --shadow: 0 18px 45px rgba(8, 4, 11, 0.08);
+      --radius-xl: 28px;
+      --radius-lg: 22px;
+      --radius-md: 16px;
+      --max: 1360px;
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+
+    body {
+      margin: 0;
+      font-family: Arial, Helvetica, sans-serif;
+      color: var(--text);
+      background:
+        linear-gradient(135deg, rgba(0,182,173,.07) 0%, transparent 28%),
+        linear-gradient(225deg, rgba(246,0,131,.05) 0%, transparent 24%),
+        linear-gradient(180deg, #ffffff 0%, #fbfdfd 100%);
+    }
+
+    body.cover-active {
+      overflow: hidden;
+    }
+
+    .wrap { max-width: var(--max); margin: 0 auto; }
+
+    .cover-screen {
+      position: fixed;
+      inset: 0;
+      z-index: 200;
+      display: grid;
+      place-items: center;
+      padding: 28px;
+      background:
+        radial-gradient(circle at top left, rgba(0,182,173,.10), transparent 24%),
+        radial-gradient(circle at bottom right, rgba(246,0,131,.10), transparent 24%),
+        linear-gradient(180deg, #ffffff 0%, #f8fcfc 100%);
+      transition: opacity .45s ease, visibility .45s ease;
+    }
+
+    .cover-screen.hidden {
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+    }
+
+    .cover-card {
+      width: min(920px, 100%);
+      border: 1px solid var(--line);
+      border-radius: 32px;
+      background: rgba(255,255,255,.94);
+      box-shadow: 0 30px 70px rgba(8, 4, 11, 0.12);
+      overflow: hidden;
+      animation: coverEnter .8s ease both;
+    }
+
+    .cover-top {
+      padding: 34px 36px 18px;
+      background:
+        linear-gradient(135deg, rgba(0,182,173,.09) 0%, transparent 42%),
+        linear-gradient(225deg, rgba(246,0,131,.08) 0%, transparent 36%),
+        #ffffff;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .cover-brand {
+      display: inline-flex;
+      align-items: center;
+      gap: 14px;
+      margin-bottom: 22px;
+    }
+
+    .cover-mark {
+      width: 48px;
+      height: 48px;
+      border-radius: 14px;
+      background:
+        linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+      position: relative;
+      box-shadow: 0 12px 24px rgba(0,182,173,.22);
+    }
+
+    .cover-mark::before,
+    .cover-mark::after {
+      content: "";
+      position: absolute;
+      border-radius: 999px;
+      background: #ffffff;
+    }
+
+    .cover-mark::before {
+      width: 24px;
+      height: 6px;
+      left: 12px;
+      top: 14px;
+      transform: rotate(-30deg);
+    }
+
+    .cover-mark::after {
+      width: 28px;
+      height: 6px;
+      left: 10px;
+      top: 26px;
+      transform: rotate(30deg);
+      background: var(--accent);
+    }
+
+    .cover-brand-text strong {
+      display: block;
+      font-size: 24px;
+      letter-spacing: -.03em;
+    }
+
+    .cover-brand-text span {
+      display: block;
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+    }
+
+    .cover-title {
+      margin: 0;
+      font-size: clamp(42px, 5vw, 72px);
+      line-height: .98;
+      letter-spacing: -.05em;
+      font-weight: 900;
+    }
+
+    .cover-subtitle {
+      max-width: 760px;
+      margin: 18px 0 0;
+      color: var(--muted);
+      font-size: 20px;
+      line-height: 1.55;
+    }
+
+    .cover-bottom {
+      display: grid;
+      grid-template-columns: 1.15fr .85fr;
+      gap: 22px;
+      padding: 28px 36px 34px;
+    }
+
+    .cover-panel {
+      border: 1px solid var(--line);
+      border-radius: 24px;
+      background: var(--surface-soft);
+      padding: 22px;
+    }
+
+    .cover-panel h2 {
+      margin: 0 0 10px;
+      font-size: 20px;
+    }
+
+    .cover-panel p {
+      margin: 0;
+      color: var(--muted);
+      line-height: 1.6;
+      font-size: 15px;
+    }
+
+    .cover-list {
+      margin: 14px 0 0;
+      padding-left: 18px;
+      color: var(--muted);
+      line-height: 1.7;
+      font-size: 15px;
+    }
+
+    .cover-actions {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      justify-content: space-between;
+    }
+
+    .cover-cta {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      min-height: 56px;
+      border: 0;
+      border-radius: 18px;
+      background: var(--primary);
+      color: #08040b;
+      font-size: 16px;
+      font-weight: 900;
+      cursor: pointer;
+      transition: transform .2s ease, background .2s ease, box-shadow .2s ease;
+      box-shadow: 0 16px 28px rgba(0,182,173,.18);
+    }
+
+    .cover-cta:hover {
+      transform: translateY(-2px);
+      background: var(--accent);
+      color: #ffffff;
+      box-shadow: 0 18px 30px rgba(246,0,131,.18);
+    }
+
+    .cover-credit {
+      padding: 16px 18px;
+      border-radius: 18px;
+      background: #08040b;
+      color: #ffffff;
+    }
+
+    .cover-credit strong {
+      display: block;
+      font-size: 12px;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      color: #72efe8;
+      margin-bottom: 6px;
+    }
+
+    .cover-credit span {
+      font-size: 15px;
+      line-height: 1.5;
+    }
+
+    header {
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      background: rgba(255,255,255,.94);
+      backdrop-filter: blur(10px);
+      border-bottom: 1px solid var(--line);
+    }
+
+    .header-inner { padding: 20px 28px 16px; }
+
+    .header-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 22px;
+    }
+
+    .eyebrow {
+      color: var(--primary);
+      font-size: 12px;
+      font-weight: 900;
+      letter-spacing: .10em;
+      text-transform: uppercase;
+      margin-bottom: 6px;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(34px, 4vw, 54px);
+      line-height: 1.05;
+      letter-spacing: -.04em;
+      font-weight: 800;
+    }
+
+    .subtitle {
+      max-width: 920px;
+      margin: 10px 0 0;
+      color: var(--muted);
+      font-size: 18px;
+      line-height: 1.52;
+    }
+
+    .header-meta {
+      padding: 10px 14px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: var(--dark);
+      color: #ffffff;
+      box-shadow: inset 0 0 0 1px rgba(0,182,173,.2);
+      font-size: 13px;
+      font-weight: 800;
+      white-space: nowrap;
+    }
+
+    nav {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 16px;
+    }
+
+    nav a {
+      text-decoration: none;
+      padding: 10px 14px;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      background: #ffffff;
+      color: var(--text);
+      font-size: 13px;
+      font-weight: 800;
+      transition: .2s ease;
+    }
+
+    nav a:hover {
+      border-color: var(--primary);
+      color: var(--primary-dark);
+      background: var(--surface-blue);
+    }
+
+    main { padding: 28px; }
+    section { margin-bottom: 24px; scroll-margin-top: 145px; }
+
+    .section {
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: var(--radius-xl);
+      box-shadow: var(--shadow);
+      padding: 30px;
+    }
+
+    .reveal {
+      opacity: 0;
+      transform: translateY(18px);
+      animation: sectionReveal .65s ease forwards;
+    }
+
+    .reveal-delay-1 { animation-delay: .06s; }
+    .reveal-delay-2 { animation-delay: .12s; }
+    .reveal-delay-3 { animation-delay: .18s; }
+    .reveal-delay-4 { animation-delay: .24s; }
+
+    .hero {
+      display: grid;
+      grid-template-columns: 1.1fr .9fr;
+      gap: 24px;
+      align-items: center;
+      background:
+        linear-gradient(135deg, rgba(246,0,131,.14) 0%, transparent 34%),
+        linear-gradient(135deg, #08040b 0%, #0d1317 100%);
+      color: #fff;
+    }
+
+    .hero .section-id { color: #72efe8; }
+    .hero h2 { color: #fff; font-size: clamp(34px, 4vw, 50px); }
+    .hero .lead { color: #dceeed; }
+
+    .hero-claim {
+      margin: 18px 0 0;
+      font-size: clamp(23px, 3vw, 36px);
+      line-height: 1.16;
+      font-weight: 800;
+      letter-spacing: -.04em;
+    }
+
+    .hero-panel {
+      background: rgba(255,255,255,.05);
+      border: 1px solid rgba(0,182,173,.28);
+      border-radius: 24px;
+      padding: 22px;
+    }
+
+    .hero-list {
+      margin: 0;
+      padding-left: 18px;
+      color: #dceeed;
+      line-height: 1.65;
+    }
+
+    .section-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 24px;
+      margin-bottom: 22px;
+    }
+
+    .section-id {
+      color: var(--primary);
+      font-size: 12px;
+      font-weight: 900;
+      letter-spacing: .10em;
+      text-transform: uppercase;
+      margin-bottom: 8px;
+    }
+
+    h2 {
+      margin: 0;
+      font-size: clamp(28px, 3vw, 42px);
+      line-height: 1.1;
+      letter-spacing: -.03em;
+      font-weight: 800;
+    }
+
+    .lead {
+      max-width: 930px;
+      margin: 12px 0 0;
+      color: var(--muted);
+      font-size: 17px;
+      line-height: 1.58;
+    }
+
+    .helper-note {
+      margin-top: 12px;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.5;
+    }
+
+    .grid { display: grid; gap: 18px; }
+    .g2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .g3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .g4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+
+    .card {
+      background: var(--surface-soft);
+      border: 1px solid var(--line);
+      border-radius: var(--radius-lg);
+      padding: 22px;
+    }
+
+    .card.white { background: #fff; }
+    .card h3 { margin: 0 0 10px; font-size: 22px; letter-spacing: -.02em; }
+    .card p, .card li { color: var(--muted); line-height: 1.58; font-size: 15px; }
+    .card ul { margin: 0; padding-left: 18px; }
+
+    .tag {
+      display: inline-flex;
+      align-items: center;
+      padding: 6px 10px;
+      border-radius: 999px;
+      background: var(--surface-blue);
+      color: var(--primary-dark);
+      font-size: 12px;
+      font-weight: 800;
+      margin: 2px 6px 2px 0;
+      white-space: nowrap;
+    }
+
+    .term-hint {
+      position: relative;
+      display: inline-block;
+      text-decoration: underline dotted var(--primary);
+      text-underline-offset: 3px;
+      cursor: help;
+    }
+
+    .term-hint:hover::after,
+    .term-hint:focus-visible::after {
+      content: attr(data-tip);
+      position: absolute;
+      left: 50%;
+      bottom: calc(100% + 14px);
+      transform: translateX(-50%);
+      width: min(360px, 82vw);
+      padding: 12px 14px;
+      border-radius: 14px;
+      border: 1px solid rgba(255,255,255,.12);
+      background: #08040b;
+      color: #ffffff;
+      font-size: 13px;
+      line-height: 1.55;
+      font-weight: 500;
+      letter-spacing: .01em;
+      box-shadow: 0 18px 40px rgba(8, 4, 11, 0.28);
+      z-index: 80;
+      white-space: normal;
+      text-align: left;
+      pointer-events: none;
+    }
+
+    .term-hint:hover::before,
+    .term-hint:focus-visible::before {
+      content: "";
+      position: absolute;
+      left: 50%;
+      bottom: calc(100% + 6px);
+      transform: translateX(-50%) rotate(45deg);
+      width: 14px;
+      height: 14px;
+      background: #08040b;
+      border-right: 1px solid rgba(255,255,255,.12);
+      border-bottom: 1px solid rgba(255,255,255,.12);
+      z-index: 79;
+      pointer-events: none;
+    }
+
+    @media (max-width: 760px) {
+      .term-hint:hover::after,
+      .term-hint:focus-visible::after {
+        left: 0;
+        right: auto;
+        transform: none;
+        width: min(300px, 78vw);
+      }
+
+      .term-hint:hover::before,
+      .term-hint:focus-visible::before {
+        left: 20px;
+        transform: rotate(45deg);
+      }
+    }
+
+    .tag.alt { background: var(--surface-magenta); color: #a10057; }
+    .tag.ok { background: #e7fbf9; color: #006d67; }
+    .tag.warn { background: #fff5dd; color: #8a5a00; }
+    .tag.alert { background: #fff1f8; color: #a10057; }
+
+    .image-slot {
+      position: relative;
+      min-height: 250px;
+      border: 2px dashed #a9bbcf;
+      background: #f9fbfd;
+      border-radius: 24px;
+      display: grid;
+      place-items: center;
+      overflow: hidden;
+      padding: 18px;
+      text-align: center;
+    }
+
+    .image-slot img {
+      max-width: 100%;
+      max-height: 360px;
+      object-fit: contain;
+      border-radius: 14px;
+      display: none;
+    }
+
+    .image-slot.loaded img { display: block; }
+    .image-slot.loaded .placeholder { display: none; }
+
+    .placeholder { color: var(--muted); line-height: 1.55; }
+    .placeholder strong { display: block; color: var(--text); margin-bottom: 8px; font-size: 18px; }
+
+    .filename {
+      display: inline-block;
+      margin-top: 8px;
+      padding: 6px 10px;
+      border-radius: 999px;
+      background: var(--surface-blue);
+      color: var(--primary-dark);
+      font-family: Consolas, Monaco, monospace;
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    .product-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 16px;
+      margin-bottom: 22px;
+    }
+
+    .product-card {
+      border: 1px solid var(--line);
+      background: #fff;
+      border-radius: 24px;
+      overflow: visible;
+      cursor: pointer;
+      transition: .22s ease;
+      box-shadow: 0 10px 24px rgba(15,23,42,.05);
+      position: relative;
+      animation: cardRise .55s ease both;
+    }
+
+    .product-card:hover, .product-card.active {
+      transform: translateY(-4px);
+      border-color: var(--primary);
+      box-shadow: 0 18px 34px rgba(0,182,173,.12);
+    }
+
+    .product-thumb {
+      height: 210px;
+      background: linear-gradient(180deg, #fcfefe 0%, #eef8f8 100%);
+      border-bottom: 1px solid var(--line);
+      display: grid;
+      place-items: center;
+      padding: 16px;
+      border-top-left-radius: 24px;
+      border-top-right-radius: 24px;
+    }
+
+    .product-thumb img {
+      max-width: 100%;
+      max-height: 160px;
+      object-fit: contain;
+      display: none;
+    }
+
+    .product-card.loaded .product-thumb img { display: block; }
+    .product-card.loaded .placeholder-mini { display: none; }
+
+    .placeholder-mini { color: var(--muted); font-size: 13px; line-height: 1.45; text-align: center; }
+    .placeholder-mini b { display: block; color: var(--text); margin-bottom: 6px; }
+
+    .product-body { padding: 18px; }
+    .product-card:hover,
+    .product-card:focus-within {
+      z-index: 40;
+    }
+    .product-body h3 { margin: 0 0 8px; font-size: 22px; }
+    .product-body p { margin: 0; color: var(--muted); line-height: 1.5; }
+
+    .product-detail {
+      display: grid;
+      grid-template-columns: .88fr 1.12fr;
+      gap: 22px;
+      padding: 24px;
+      border-radius: 28px;
+      border: 1px solid var(--line);
+      background: #fff;
+      transition: border-color .24s ease, box-shadow .24s ease;
+    }
+
+    .product-detail.refresh {
+      animation: contentSwap .32s ease;
+    }
+
+    .detail-title {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-bottom: 8px;
+    }
+
+    .detail-title h3 {
+      margin: 0;
+      font-size: 34px;
+      line-height: 1.08;
+      letter-spacing: -.03em;
+    }
+
+    .detail-copy p { color: var(--muted); line-height: 1.62; font-size: 16px; }
+
+    .doc-box {
+      margin-top: 18px;
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      background: var(--surface-soft);
+      padding: 18px;
+    }
+
+    .doc-box h4 {
+      margin: 0 0 10px;
+      color: var(--primary-dark);
+      font-size: 16px;
+      letter-spacing: -.01em;
+    }
+
+    .doc-box p {
+      margin: 0 0 12px;
+      font-size: 14px;
+      line-height: 1.55;
+    }
+
+    .doc-links {
+      display: grid;
+      gap: 10px;
+    }
+
+    .doc-link {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 14px;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: #fff;
+      text-decoration: none;
+      color: var(--text);
+      transition: .2s ease;
+    }
+
+    .doc-link:hover {
+      border-color: var(--primary);
+      background: var(--surface-blue);
+    }
+
+    .doc-link strong {
+      display: block;
+      font-size: 14px;
+    }
+
+    .doc-link span {
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.4;
+      word-break: break-all;
+    }
+
+    .product-fields {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+      margin: 18px 0 20px;
+    }
+
+    .field {
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      background: var(--surface-soft);
+      padding: 14px 16px;
+    }
+
+    .field-label {
+      color: var(--primary);
+      text-transform: uppercase;
+      font-size: 11px;
+      letter-spacing: .08em;
+      font-weight: 900;
+      margin-bottom: 6px;
+    }
+
+    .field-value { color: var(--text); font-weight: 700; line-height: 1.45; }
+
+    .tabs { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 14px; }
+
+    .tab-btn, button {
+      border: 1px solid var(--line);
+      background: #fff;
+      color: var(--text);
+      border-radius: 999px;
+      padding: 10px 14px;
+      font-size: 13px;
+      font-weight: 800;
+      cursor: pointer;
+      transition: .2s ease;
+    }
+
+    .tab-btn:hover, .tab-btn.active, button:hover {
+      background: var(--surface-blue);
+      border-color: var(--primary);
+      color: var(--primary-dark);
+    }
+
+    .tab-panel { display: none; }
+    .tab-panel.active { display: block; animation: fadeIn .2s ease; }
+
+    .accordion { display: grid; gap: 10px; }
+
+    .acc {
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      overflow: hidden;
+      background: #fff;
+    }
+
+    .acc button {
+      width: 100%;
+      border: 0;
+      background: #f7fdfd;
+      color: var(--text);
+      padding: 15px 16px;
+      text-align: left;
+      font-size: 15px;
+      font-weight: 800;
+      cursor: pointer;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .acc button:hover { background: #edf9f8; }
+    .acc .content { display: none; padding: 0 16px 16px; color: var(--muted); line-height: 1.6; }
+    .acc.open .content { display: block; }
+
+    .technical-flow {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .flow-step {
+      position: relative;
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      padding: 18px 14px;
+      min-height: 128px;
+    }
+
+    .flow-step:not(:last-child)::after {
+      content: "";
+      position: absolute;
+      right: -8px;
+      top: 50%;
+      width: 16px;
+      height: 1px;
+      background: var(--primary);
+      transform: translateY(-50%);
+      z-index: 1;
+    }
+
+    .flow-no {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 34px;
+      height: 34px;
+      border-radius: 999px;
+      background: var(--surface-blue);
+      color: var(--primary-dark);
+      font-weight: 900;
+      margin-bottom: 10px;
+    }
+
+    .flow-step strong { display: block; font-size: 17px; margin-bottom: 5px; }
+    .flow-step span { color: var(--muted); font-size: 14px; line-height: 1.4; }
+
+    .signal-layout {
+      display: grid;
+      grid-template-columns: .82fr 1.18fr;
+      gap: 18px;
+    }
+
+    .signal-list { display: grid; gap: 10px; }
+
+    .signal-btn {
+      width: 100%;
+      text-align: left;
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      background: #fff;
+      padding: 16px;
+      cursor: pointer;
+      transition: .2s ease;
+    }
+
+    .signal-btn:hover, .signal-btn.active {
+      border-color: var(--primary);
+      background: var(--surface-blue);
+      transform: translateY(-2px);
+      box-shadow: 0 10px 24px rgba(0,182,173,.12);
+    }
+
+    .signal-btn strong { display: block; font-size: 18px; color: var(--text); }
+    .signal-btn span { display: block; margin-top: 4px; color: var(--muted); line-height: 1.45; }
+
+    .signal-display {
+      background:
+        linear-gradient(135deg, rgba(246,0,131,.12) 0%, transparent 30%),
+        linear-gradient(135deg, #08040b 0%, #0f1f22 100%);
+      color: #fff;
+      border-radius: 24px;
+      padding: 24px;
+      min-height: 300px;
+    }
+
+    .signal-display.refresh {
+      animation: contentSwap .28s ease;
+    }
+
+    .signal-display h3 { margin: 0 0 10px; font-size: 30px; }
+    .signal-display p { color: #dbe7f7; line-height: 1.62; font-size: 16px; }
+
+    .demo {
+      margin-top: 16px;
+      padding: 16px;
+      border-radius: 18px;
+      background: rgba(255,255,255,.08);
+      border: 1px solid rgba(255,255,255,.10);
+    }
+
+    .demo-title { font-weight: 800; margin-bottom: 12px; }
+    .demo-row { display: flex; justify-content: space-between; gap: 12px; margin-top: 12px; font-weight: 800; }
+    input[type="range"] { width: 100%; accent-color: var(--primary); }
+
+    .connection-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px; }
+
+    .status-row { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
+
+    .status-card {
+      border-radius: 22px;
+      padding: 20px;
+      color: #fff;
+      min-height: 140px;
+    }
+
+    .status-card.ok { background: var(--green); }
+    .status-card.warn { background: var(--yellow); color: #302100; }
+    .status-card.alert { background: var(--red); }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: 20px;
+      overflow: hidden;
+    }
+
+    th, td {
+      padding: 15px;
+      border-bottom: 1px solid var(--line);
+      text-align: left;
+      vertical-align: top;
+      font-size: 15px;
+      line-height: 1.5;
+    }
+
+    th {
+      background: var(--surface-blue);
+      color: var(--primary-dark);
+      text-transform: uppercase;
+      font-size: 12px;
+      letter-spacing: .04em;
+      font-weight: 800;
+    }
+
+    tr:last-child td { border-bottom: 0; }
+
+    .rating {
+      display: inline-flex;
+      gap: 4px;
+      align-items: center;
+      white-space: nowrap;
+    }
+
+    .dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: #cbd5e1;
+      display: inline-block;
+    }
+
+    .dot.on { background: var(--primary); }
+
+    .decision {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 18px;
+    }
+
+    select {
+      width: 100%;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      background: #fff;
+      padding: 14px 16px;
+      font-size: 15px;
+      color: var(--text);
+    }
+
+    .btn-primary {
+      margin-top: 14px;
+      border: 0;
+      border-radius: 16px;
+      padding: 14px 18px;
+      background: var(--primary);
+      color: #08040b;
+      font-size: 15px;
+      font-weight: 800;
+      cursor: pointer;
+    }
+
+    .btn-primary:hover { background: var(--accent); color: #fff; }
+
+    .result {
+      border: 1px solid var(--line);
+      border-radius: 22px;
+      background: #fff;
+      padding: 24px;
+      min-height: 250px;
+    }
+
+    .result.refresh {
+      animation: contentSwap .28s ease;
+    }
+
+    .result h3 { margin: 0 0 12px; color: var(--primary-dark); font-size: 30px; }
+    .result p { color: var(--muted); line-height: 1.62; }
+
+    .glossary { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+
+    .term {
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      background: #fff;
+      padding: 16px;
+    }
+
+    .term strong { display: block; color: var(--primary-dark); margin-bottom: 6px; font-size: 16px; }
+    .term span { color: var(--muted); line-height: 1.5; }
+
+    footer {
+      padding: 28px;
+      background:
+        linear-gradient(135deg, rgba(246,0,131,.1) 0%, transparent 28%),
+        #08040b;
+      color: #dceeed;
+      font-size: 14px;
+      line-height: 1.6;
+    }
+
+    .footer-note {
+      margin-top: 6px;
+      color: #90b5b2;
+      font-size: 12px;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes sectionReveal {
+      from { opacity: 0; transform: translateY(18px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes cardRise {
+      from { opacity: 0; transform: translateY(20px) scale(.985); }
+      to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+
+    @keyframes contentSwap {
+      0% { opacity: .35; transform: translateY(8px); }
+      100% { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes coverEnter {
+      from { opacity: 0; transform: translateY(24px) scale(.985); }
+      to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+
+    @media (max-width: 1120px) {
+      .hero, .product-detail, .signal-layout, .decision, .glossary, .g4, .g3, .g2, .status-row, .connection-grid, .technical-flow { grid-template-columns: 1fr; }
+      .product-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .flow-step:not(:last-child)::after { display: none; }
+      .cover-bottom { grid-template-columns: 1fr; }
+    }
+
+    @media (max-width: 760px) {
+      .header-inner, main, footer { padding-left: 18px; padding-right: 18px; }
+      .header-top, .section-head { flex-direction: column; }
+      .product-grid, .product-fields { grid-template-columns: 1fr; }
+      .section { padding: 22px; }
+      .header-meta { white-space: normal; }
+      .cover-top, .cover-bottom { padding-left: 22px; padding-right: 22px; }
+      .cover-title { font-size: 42px; }
+      .cover-subtitle { font-size: 17px; }
+    }
+  </style>
+</head>
+<body class="cover-active">
+  <div class="cover-screen" id="coverScreen">
+    <div class="cover-card">
+      <div class="cover-top">
+        <div class="cover-brand">
+          <div class="cover-mark" aria-hidden="true"></div>
+          <div class="cover-brand-text">
+            <strong>akYtec</strong>
+            <span>Produktübersicht</span>
+          </div>
+        </div>
+        <h1 class="cover-title">Digitale Prozessanzeigen</h1>
+        <p class="cover-subtitle">Interaktive technische Übersicht zur lokalen Prozessüberwachung mit Fokus auf Signalart, Anzeigeprinzip, Parametrierung, Anschluss und Einordnung der Geräte innerhalb der Produktlinie.</p>
+      </div>
+      <div class="cover-bottom">
+        <div class="cover-panel">
+          <h2>Inhalt der Präsentation</h2>
+          <p>Die Präsentation dient als technische Einordnung der kompakten Anzeigegeräte von akYtec. Sie richtet sich an Engineering, Vertrieb und Business und verbindet Signalverständnis, Gerätevergleich und Anwendungsperspektive.</p>
+          <ul class="cover-list">
+            <li>Gemeinsame Merkmale der Linie</li>
+            <li>Signalarten und Anzeigeprinzipien</li>
+            <li>Produktvergleich und Parametrierung</li>
+            <li>Anschluss, Prozesskette und Kundensituationen</li>
+          </ul>
+        </div>
+        <div class="cover-actions">
+          <button class="cover-cta" type="button" onclick="openPresentation()">Präsentation öffnen</button>
+          <div class="cover-credit">
+            <strong>Konzept und Aufbereitung</strong>
+            <span>Fernando B. Vasquez</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <header>
+    <div class="wrap header-inner">
+      <div class="header-top">
+        <div>
+          <div class="eyebrow">Produktübersicht</div>
+          <h1>Digitale Prozessanzeigen</h1>
+          <p class="subtitle">Interaktive Übersicht kompakter Anzeigen für die lokale Prozessüberwachung: Signalarten, Anzeigeprinzipien, Parametrierung, Anschluss und Auswahlkriterien.</p>
+        </div>
+        <div class="header-meta">akYtec Produktlinie</div>
+      </div>
+      <nav>
+        <a href="#ueberblick">Überblick</a>
+        <a href="#produkte">Produkte</a>
+        <a href="#matrix">Positionierung</a>
+        <a href="#funktion">Funktion</a>
+        <a href="#signale">Signale</a>
+        <a href="#anschluss">Anschluss</a>
+        <a href="#auswahl">Auswahl</a>
+        <a href="#glossar">Glossar</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <section id="ueberblick" class="section hero reveal">
+      <div>
+        <div class="section-id">Einordnung</div>
+        <h2>Kompakte Prozessanzeigen für die lokale Überwachung und Einordnung von Messwerten</h2>
+        <p class="hero-claim">Im Mittelpunkt stehen Signalart, Anzeigeform, Parametrierung und Integrationsprinzip.</p>
+        <p class="lead">Die Geräte dienen der lokalen Anzeige von Prozesswerten direkt am Einbauort. Je nach Gerät werden Strom- oder Spannungssignale, Temperatursensoren oder Modbus-Daten verarbeitet. Unterschiede ergeben sich vor allem bei Eingangssignal, Anzeigeprinzip, Parametrierung und Systemeinbindung.</p>
+      </div>
+      <div class="hero-panel">
+        <ul class="hero-list">
+          <li>Schleifenanzeige für 4…20-mA-Standardsignale</li>
+          <li>Universeller Prozessindikator für RTD, Thermoelemente und U-/I-Signale</li>
+          <li>LED-Bargraph-Anzeige zur schnellen Zustandsbewertung</li>
+          <li>RS485-Anzeige für Modbus-gestützte Netzwerkwerte</li>
+        </ul>
+      </div>
+    </section>
+
+    <section id="gemeinsam" class="section reveal reveal-delay-1">
+      <div class="section-head">
+        <div>
+          <div class="section-id">Gemeinsame Merkmale</div>
+          <h2>Technische Gemeinsamkeiten der Linie</h2>
+          <p class="lead">Vor der Geräteauswahl ist es sinnvoll, die gemeinsamen mechanischen und funktionalen Grundmerkmale einzuordnen. Dadurch wird klar, worin sich die Geräte unterscheiden und worin nicht.</p>
+        </div>
+      </div>
+      <div class="grid g4">
+        <div class="card white"><h3>Kompakter Einbau</h3><p>Die Geräte sind für den Schalttafeleinbau in eine Standardbohrung von Ø22,5 mm ausgelegt und damit für kompakte Bedien- und Frontplatten geeignet.</p></div>
+        <div class="card white"><h3>Lokale Anzeige</h3><p>Im Vordergrund steht die unmittelbare Anzeige des relevanten Prozesswerts direkt am Einbauort, ohne zusätzlichen Bedienbildschirm.</p></div>
+        <div class="card white"><h3>Klare Lesbarkeit</h3><p>Je nach Gerät erfolgt die Anzeige numerisch oder als Bargraph. Farbwechsel und Zustandsanzeige unterstützen die schnelle Einordnung des Prozesszustands.</p></div>
+        <div class="card white"><h3>Industrielle Integration</h3><p>Die Geräte verbinden Signalaufnahme, Anzeige und gegebenenfalls Zustandsweitergabe in einem kompakten Format für industrielle Anwendungen.</p></div>
+      </div>
+    </section>
+
+    <section id="produkte" class="section reveal reveal-delay-2">
+      <div class="section-head">
+        <div>
+          <div class="section-id">Produkte</div>
+          <h2>Produktansicht mit modularer Detailtiefe</h2>
+          <p class="lead">Jedes Gerät wird nach derselben technischen Struktur beschrieben: Signalaufnahme, Anzeigeprinzip, Parametrierung, Anschluss und typische Einsatzgrenzen.</p>
+          <p class="helper-note">Markierte Fachbegriffe lassen sich per Mauszeiger kurz erklären. Das Glossar ergänzt die technischen Bezeichnungen um einfache Einordnungen.</p>
+        </div>
+      </div>
+
+      <div class="product-grid">
+        <div class="product-card active" data-product="itp11" data-img="assets/img/produkt-itp11.jpg">
+          <div class="product-thumb">
+            <img alt="ITP11" />
+            <div class="placeholder-mini"><b>Produktbild</b><span class="filename">produkt-itp11.jpg</span></div>
+          </div>
+          <div class="product-body">
+            <h3>ITP11</h3>
+            <p><span class="term-hint" tabindex="0" data-tip="Eine Schleifenanzeige verarbeitet einen standardisierten 4…20-mA-Messwert direkt aus der Stromschleife und zeigt ihn lokal an.">4–20-mA-Anzeige</span></p>
+          </div>
+        </div>
+
+        <div class="product-card" data-product="itp17" data-img="assets/img/produkt-itp17.jpg">
+          <div class="product-thumb">
+            <img alt="ITP17" />
+            <div class="placeholder-mini"><b>Produktbild</b><span class="filename">produkt-itp17.jpg</span></div>
+          </div>
+          <div class="product-body">
+            <h3>ITP17</h3>
+            <p><span class="term-hint" tabindex="0" data-tip="Ein universeller Prozessindikator kann unterschiedliche Sensorsignale aufnehmen, zum Beispiel Strom, Spannung oder Temperaturfühler, und denselben Gerätetyp für mehrere Anwendungen nutzbar machen.">Universeller Prozessindikator</span></p>
+          </div>
+        </div>
+
+        <div class="product-card" data-product="itp15m" data-img="assets/img/produkt-itp15-m.jpg">
+          <div class="product-thumb">
+            <img alt="ITP15-M" />
+            <div class="placeholder-mini"><b>Produktbild</b><span class="filename">produkt-itp15-m.jpg</span></div>
+          </div>
+          <div class="product-body">
+            <h3>ITP15-M</h3>
+            <p><span class="term-hint" tabindex="0" data-tip="Eine LED-Bargraph-Anzeige stellt den Messwert nicht primär als Zahl, sondern als Balken oder Niveau dar. Das erleichtert die schnelle visuelle Bewertung von Zustand, Tendenz oder Auslastung.">LED-Bargraph-Anzeige</span></p>
+          </div>
+        </div>
+
+        <div class="product-card" data-product="smi2m" data-img="assets/img/produkt-smi2-m.jpg">
+          <div class="product-thumb">
+            <img alt="SMI2-M" />
+            <div class="placeholder-mini"><b>Produktbild</b><span class="filename">produkt-smi2-m.jpg</span></div>
+          </div>
+          <div class="product-body">
+            <h3>SMI2-M</h3>
+            <p><span class="term-hint" tabindex="0" data-tip="Eine RS485-Mehrfarbenanzeige empfängt Werte über ein serielles Kommunikationsnetzwerk, typischerweise Modbus, und zeigt diese lokal mit numerischer und farblicher Zustandsinformation an.">RS485-Mehrfarbenanzeige</span></p>
+          </div>
+        </div>
+      </div>
+
+      <div class="product-detail">
+        <div class="image-slot" id="detailImageSlot">
+          <img alt="Produktdetail" id="detailImage" />
+          <div class="placeholder" id="detailImagePlaceholder"></div>
+        </div>
+        <div class="detail-copy">
+          <div class="detail-title">
+            <h3 id="detailTitle"></h3>
+            <span class="tag" id="detailBadge"></span>
+          </div>
+          <p id="detailIntro"></p>
+
+          <div class="product-fields">
+            <div class="field"><div class="field-label">Was ist es?</div><div class="field-value" id="fieldWhat"></div></div>
+            <div class="field"><div class="field-label">Was empfängt es?</div><div class="field-value" id="fieldInput"></div></div>
+            <div class="field"><div class="field-label">Was zeigt es?</div><div class="field-value" id="fieldDisplay"></div></div>
+            <div class="field"><div class="field-label">Was kann es auslösen?</div><div class="field-value" id="fieldAction"></div></div>
+            <div class="field"><div class="field-label">Wo passt es?</div><div class="field-value" id="fieldFit"></div></div>
+            <div class="field"><div class="field-label">Wie wird es parametriert?</div><div class="field-value" id="fieldSetup"></div></div>
+            <div class="field"><div class="field-label">Wichtige Rückfrage</div><div class="field-value" id="fieldQuestion"></div></div>
+          </div>
+
+          <div class="tabs" id="productTabs"></div>
+          <div id="productPanels"></div>
+
+          <div class="doc-box">
+            <h4>Produktdokumentation</h4>
+            <div class="doc-links" id="productDocs"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="matrix" class="section reveal reveal-delay-3">
+      <div class="section-head">
+        <div>
+          <div class="section-id">Positionierung</div>
+          <h2>Technischer Vergleich der Geräte</h2>
+          <p class="lead">Die folgende Übersicht vergleicht die Geräte anhand sachlicher technischer Merkmale. Sie dient der Einordnung nach Signalart, Anzeigeprinzip, Versorgung, Ausgang und Parametrierung.</p>
+        </div>
+      </div>
+      <table>
+        <thead>
+          <tr><th>Merkmal</th><th>ITP11</th><th>ITP17</th><th>ITP15-M</th><th>SMI2-M</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Geräteprinzip</td><td>Schleifenanzeige</td><td>Universeller Prozessindikator</td><td>LED-Bargraph-Anzeige</td><td>RS485-Mehrfarbenanzeige</td></tr>
+          <tr><td>Hauptsignal / Schnittstelle</td><td>4–20 mA</td><td>RTD, TC, Pyrometer, U-/I-Signale</td><td>RTD, TC, Pyrometer, U-/I-Signale</td><td>RS485 / Modbus RTU / ASCII</td></tr>
+          <tr><td>Anzeigeprinzip</td><td>Numerisch, 4-stellig</td><td>Numerisch, 4-stellig, farbcodiert</td><td>10-Segment-Bargraph, farbcodiert</td><td>Numerisch, 4-stellig, mehrfarbig</td></tr>
+          <tr><td>Versorgung</td><td>Direkt aus der 4–20-mA-Stromschleife</td><td>24 (10…30) V DC</td><td>24 (10…30) V DC</td><td>24 (10…48) V DC</td></tr>
+          <tr><td>Ausgang</td><td>Kein Ausgang</td><td>NPN-Transistorausgang</td><td>NPN-Transistorausgang</td><td>Kein Schaltausgang</td></tr>
+          <tr><td>Parametrierung</td><td>Am Gerät</td><td>Am Gerät und per micro-USB</td><td>Teilweise am Gerät, vollständig per micro-USB</td><td>Per Micro-USB, zusätzlich über Modbus</td></tr>
+          <tr><td>Typischer Nutzen</td><td>Einfache lokale Anzeige eines 4–20-mA-Werts</td><td>Flexible Signalverarbeitung mit Zustandsanzeige und Ausgang</td><td>Schnelle visuelle Zustands- und Bereichserfassung</td><td>Lokale Anzeige bereits vorhandener Netzwerkwerte</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section id="funktion" class="section reveal reveal-delay-1">
+      <div class="section-head">
+        <div>
+          <div class="section-id">Funktionsprinzip</div>
+          <h2>Vom Prozesswert zur Anzeige</h2>
+          <p class="lead">Die technische Logik bleibt über die Produktlinie hinweg ähnlich. Unterschiede entstehen vor allem bei Signalart, Anzeigeform und Systemintegration.</p>
+        </div>
+      </div>
+      <div class="technical-flow">
+        <div class="flow-step"><div class="flow-no">01</div><strong>Prozess</strong><span>Druck, Temperatur, Füllstand, Durchfluss oder digitaler Maschinenwert.</span></div>
+        <div class="flow-step"><div class="flow-no">02</div><strong>Sensor / System</strong><span>Ein Sensor, Transmitter, PLC oder Controller stellt den Wert bereit.</span></div>
+        <div class="flow-step"><div class="flow-no">03</div><strong>Signal</strong><span>Analogsignal, Temperatursensorik oder digitale Modbus-Kommunikation.</span></div>
+        <div class="flow-step"><div class="flow-no">04</div><strong>Auswertung</strong><span>Skalierung, Filterung, Grenzwertprüfung und Dateninterpretation.</span></div>
+        <div class="flow-step"><div class="flow-no">05</div><strong>Darstellung</strong><span>Zahl, Bargraph, Farbe, Alarmzustand oder Netzwerkwert.</span></div>
+      </div>
+    </section>
+
+    <section id="prozesskette" class="section reveal reveal-delay-2">
+      <div class="section-head">
+        <div>
+          <div class="section-id">Prozesskette</div>
+          <h2>Von der Messgröße bis zur lokalen Anzeige</h2>
+          <p class="lead">Für das Verständnis der Geräte ist entscheidend, an welcher Stelle der Signalkette sie eingesetzt werden. Die Anzeige selbst misst nicht immer direkt die physikalische Größe, sondern verarbeitet ein bereits aufbereitetes Signal oder einen vorhandenen Netzwerkwert.</p>
+        </div>
+      </div>
+      <div class="grid g2">
+        <div class="card white">
+          <h3>1. Messgröße im Prozess</h3>
+          <p>Am Anfang steht eine physikalische Größe wie Druck, Temperatur, Füllstand, Durchfluss oder Position. Diese Größe ist noch kein auswertbares Anzeigesignal.</p>
+        </div>
+        <div class="card white">
+          <h3>2. Sensor oder Transmitter</h3>
+          <p>Ein Sensor oder Transmitter erfasst die Messgröße und wandelt sie in ein technisches Signal um, zum Beispiel <span class="term-hint" tabindex="0" data-tip="Standardisiertes analoges Stromsignal zur Übertragung eines Messwerts. 4 mA stehen typischerweise für den unteren, 20 mA für den oberen Messbereich.">4–20 mA</span>, <span class="term-hint" tabindex="0" data-tip="Analoges Spannungssignal, bei dem der Messwert proportional zwischen 0 und 10 Volt abgebildet wird.">0–10 V</span>, <span class="term-hint" tabindex="0" data-tip="Widerstandsthermometer, zum Beispiel Pt100 oder Pt1000. Die Temperatur wird über eine Widerstandsänderung erfasst.">RTD</span>, <span class="term-hint" tabindex="0" data-tip="Thermoelement. Temperaturfühler für höhere Temperaturbereiche, der eine kleine temperaturabhängige Spannung erzeugt.">TC</span> oder <span class="term-hint" tabindex="0" data-tip="Berührungsloser Temperatursensor. Die Temperatur wird optisch erfasst, ohne den Prozess direkt zu berühren.">Pyrometer</span>.</p>
+        </div>
+        <div class="card white">
+          <h3>3. Signal oder Netzwerkwert</h3>
+          <p>Je nach Anlage liegt der Wert entweder direkt als analoges oder temperaturbezogenes Eingangssignal vor oder bereits digital in einer Steuerung bzw. in einem <span class="term-hint" tabindex="0" data-tip="Serielle industrielle Busschnittstelle für den Datenaustausch zwischen mehreren Geräten über zwei Leitungen.">RS485</span>-/<span class="term-hint" tabindex="0" data-tip="Kommunikationsprotokoll, mit dem Geräte Messwerte, Register und Zustände strukturiert austauschen.">Modbus</span>-Netzwerk.</p>
+        </div>
+        <div class="card white">
+          <h3>4. Verarbeitung im Anzeigegerät</h3>
+          <p>Das jeweilige Gerät skaliert, interpretiert oder liest diesen Wert aus. Daraus entstehen entweder ein numerischer Anzeigewert, eine farbcodierte Zustandsanzeige oder eine Bargraph-Darstellung.</p>
+        </div>
+        <div class="card white">
+          <h3>5. Lokale Einordnung</h3>
+          <p>Der Bediener erkennt direkt am Einbauort den aktuellen Wert oder Zustand. Damit wird aus einem technischen Signal eine nutzbare Information für Betrieb, Beobachtung und Fehlersuche.</p>
+        </div>
+        <div class="card white">
+          <h3>6. Optionale Weitergabe</h3>
+          <p>Einige Geräte geben einen Zustand zusätzlich über einen <span class="term-hint" tabindex="0" data-tip="Elektronischer Ausgang zur Weitergabe eines Zustands an PLC, Relais oder weitere Logik.">NPN-Transistorausgang</span> weiter oder sind direkt Teil einer Kommunikationsstruktur. Damit endet die Funktion nicht bei der Anzeige, sondern kann in die Anlagenlogik eingebunden werden.</p>
+        </div>
+      </div>
+    </section>
+
+    <section id="signale" class="section reveal reveal-delay-2">
+      <div class="section-head">
+        <div>
+          <div class="section-id">Signale</div>
+          <h2>Signalarten und technische Grundlogik</h2>
+          <p class="lead">Diese Ebene ergänzt die Produktansicht. Sie erklärt nur die Signalbegriffe, die für Auswahl, Anschluss und Einordnung der Geräte relevant sind.</p>
+        </div>
+      </div>
+
+      <div class="signal-layout">
+        <div class="signal-list">
+          <button class="signal-btn active" data-signal="ma"><strong>4–20 mA</strong><span>Industriestandard für analoge Messwerte</span></button>
+          <button class="signal-btn" data-signal="volt"><strong>0–10 V</strong><span>Analoge Spannungsschnittstelle</span></button>
+          <button class="signal-btn" data-signal="rtd"><strong>RTD / Pt100 / Pt1000</strong><span>Widerstandsbasierte Temperaturmessung</span></button>
+          <button class="signal-btn" data-signal="tc"><strong>TC / Thermoelement</strong><span>Temperaturerfassung für hohe Bereiche</span></button>
+          <button class="signal-btn" data-signal="pyro"><strong>Pyrometer</strong><span>Berührungslose Temperaturerfassung</span></button>
+          <button class="signal-btn" data-signal="modbus"><strong>RS485 / Modbus</strong><span>Digitale Kommunikation im Netzwerk</span></button>
+        </div>
+        <div class="signal-display" id="signalDisplay"></div>
+      </div>
+    </section>
+
+    <section id="anschluss" class="section reveal reveal-delay-3">
+      <div class="section-head">
+        <div>
+          <div class="section-id">Anschluss</div>
+          <h2>Anschluss des gewählten Produkts</h2>
+          <p class="lead" id="connectionLead">Die Anschlussansicht zeigt das zum aktuell gewählten Gerät passende Integrationsprinzip.</p>
+        </div>
+      </div>
+      <div class="connection-grid" id="connectionGrid"></div>
+    </section>
+
+    <section class="section reveal reveal-delay-4">
+      <div class="section-head">
+        <div>
+          <div class="section-id">Zustandslogik</div>
+          <h2>Farben und Grenzbereiche</h2>
+          <p class="lead">Farblogik ergänzt die reine Wertdarstellung um eine klare visuelle Bewertung. Dadurch werden Prozesszustände schneller erfassbar.</p>
+        </div>
+      </div>
+      <div class="status-row">
+        <div class="status-card ok"><h3>Normalbereich</h3><p>Stabiler Betrieb innerhalb der definierten Grenzen.</p></div>
+        <div class="status-card warn"><h3>Warnbereich</h3><p>Annäherung an einen kritischen Grenzwert.</p></div>
+        <div class="status-card alert"><h3>Alarmbereich</h3><p>Grenzwert erreicht oder überschritten; Reaktion möglich.</p></div>
+      </div>
+    </section>
+
+    <section id="auswahl" class="section reveal reveal-delay-1">
+      <div class="section-head">
+        <div>
+          <div class="section-id">Auswahl</div>
+          <h2>Auswahlhilfe nach technischer Ausgangssituation</h2>
+          <p class="lead">Die Auswahl erfolgt nicht nach Marketingbegriffen, sondern nach Signalquelle, Anzeigeform, Parametrierung und Einbindung in die Anlage.</p>
+        </div>
+      </div>
+
+      <div class="decision">
+        <div class="card white">
+          <h3>Ausgangssituation</h3>
+          <select id="need">
+            <option value="simple">Vorhandener 4–20-mA-Messwert, lokale Anzeige gewünscht</option>
+            <option value="universal">Mehrere Sensor- oder Signalarten sollen abgedeckt werden</option>
+            <option value="visual">Zustand soll primär visuell als Niveau oder Zone erfasst werden</option>
+            <option value="network">Messwert liegt bereits in einem RS485-/Modbus-System vor</option>
+          </select>
+          <button class="btn-primary" onclick="recommend()">Zuordnung anzeigen</button>
+        </div>
+        <div class="result" id="recommendation"></div>
+      </div>
+    </section>
+
+    <section id="glossar" class="section reveal reveal-delay-2">
+      <div class="section-head">
+        <div>
+          <div class="section-id">Glossar</div>
+          <h2>Technische Schlüsselbegriffe</h2>
+          <p class="lead">Die Begriffsebene bleibt bewusst knapp und direkt. Sie dient der präzisen Einordnung technischer Aussagen innerhalb der Produktlinie.</p>
+        </div>
+      </div>
+
+      <div class="glossary">
+        <div class="term"><strong>Sensor</strong><span>Erfasst eine physikalische Größe wie Druck, Temperatur oder Füllstand.</span></div>
+        <div class="term"><strong>Transmitter</strong><span>Wandelt den Messwert des Sensors in ein industriell nutzbares Signal um.</span></div>
+        <div class="term"><strong>4–20 mA</strong><span>Analoger Industriestandard, bei dem der Messwert als Stromsignal übertragen wird.</span></div>
+        <div class="term"><strong>0–10 V</strong><span>Analoge Spannungsschnittstelle für proportionale Signaldarstellung.</span></div>
+        <div class="term"><strong>RTD / Pt100</strong><span>Temperatursensor auf Widerstandsbasis mit stabiler und präziser Auswertung.</span></div>
+        <div class="term"><strong>Thermoelement</strong><span>Temperatursensor für hohe Temperaturbereiche und robuste Prozessbedingungen.</span></div>
+        <div class="term"><strong>NPN-Transistorausgang</strong><span>Elektronischer Ausgang zur Weitergabe eines Zustands an PLC, Relais oder weitere Logik.</span></div>
+        <div class="term"><strong>RS485 / Modbus</strong><span>Physische Schnittstelle und Protokoll für die Übertragung digitaler Prozessdaten.</span></div>
+      </div>
+    </section>
+
+    <section id="analog-digital" class="section reveal reveal-delay-3">
+      <div class="section-head">
+        <div>
+          <div class="section-id">Einordnung</div>
+          <h2>Direkter Sensoreingang oder Netzwerkwert</h2>
+          <p class="lead">Der wichtigste Unterschied der Linie liegt darin, woher der Wert kommt: direkt vom Sensor oder bereits aus einem Netzwerk.</p>
+        </div>
+      </div>
+      <div class="grid g2">
+        <div class="card white">
+          <h3>Analoge Prozessanzeigen</h3>
+          <p>Der Messwert kommt direkt aus einem Sensor oder Transmitter. Die Anzeige interpretiert Strom, Spannung oder Temperatursensorik und macht daraus einen lokalen Prozesswert.</p>
+          <div><span class="tag">ITP11</span><span class="tag">ITP17</span><span class="tag">ITP15-M</span></div>
+          <div class="technical-flow" style="grid-template-columns:repeat(4,1fr);margin-top:16px">
+            <div class="flow-step"><div class="flow-no">01</div><strong>Sensor</strong><span>misst Prozesswert</span></div>
+            <div class="flow-step"><div class="flow-no">02</div><strong>Signal</strong><span>4–20 mA, 0–10 V, RTD, TC oder Pyrometer</span></div>
+            <div class="flow-step"><div class="flow-no">03</div><strong>Anzeige</strong><span>skaliert und wertet aus</span></div>
+            <div class="flow-step"><div class="flow-no">04</div><strong>Reaktion</strong><span>Zahlenwert, Farbumschaltung oder Ausgangssignal</span></div>
+          </div>
+        </div>
+        <div class="card white">
+          <h3>Netzwerkbasierte Anzeige</h3>
+          <p>Der Messwert liegt bereits digital in einem PLC, Controller oder Messgerät vor. Die Anzeige liest oder empfängt diesen Wert über RS485 / Modbus.</p>
+          <div><span class="tag">SMI2-M</span><span class="tag">RS485</span><span class="tag">Modbus RTU/ASCII</span></div>
+          <div class="technical-flow" style="grid-template-columns:repeat(4,1fr);margin-top:16px">
+            <div class="flow-step"><div class="flow-no">01</div><strong>PLC</strong><span>stellt Daten bereit</span></div>
+            <div class="flow-step"><div class="flow-no">02</div><strong>RS485</strong><span>transportiert Daten</span></div>
+            <div class="flow-step"><div class="flow-no">03</div><strong>Modbus</strong><span>definiert Datenaustausch</span></div>
+            <div class="flow-step"><div class="flow-no">04</div><strong>SMI2-M</strong><span>zeigt Wert lokal an</span></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="software" class="section reveal reveal-delay-4">
+      <div class="section-head">
+        <div>
+          <div class="section-id">Konfiguration</div>
+          <h2>Parametrierung und Inbetriebnahme</h2>
+          <p class="lead">Ein wesentliches Unterscheidungsmerkmal der Geräte ist die Art der Parametrierung: ausschließlich am Gerät, kombiniert lokal und per PC oder netzwerkbezogen über Modbus.</p>
+        </div>
+      </div>
+      <div class="grid g4">
+        <div class="card white"><h3>ITP11</h3><p>Parametrierung ausschließlich am Gerät über rückseitige Tasten. Relevant sind Skalierung, Dezimalpunkt, Filter, Alarmfunktion und Zugriffsschutz.</p></div>
+        <div class="card white"><h3>ITP17</h3><p>Parametrierung lokal am Gerät oder per micro-USB mit akYtec Tool Pro. Wesentlich sind Signaltyp, Skalierung, Farbzustände und NPN-Transistorausgang.</p></div>
+        <div class="card white"><h3>ITP15-M</h3><p>Grundeinstellungen am Gerät, vollständige Parametrierung über micro-USB mit akYtec Tool Pro. Relevant sind Segmentbereich, Farbzonenschwellen und Ausgangsverhalten.</p></div>
+        <div class="card white"><h3>SMI2-M</h3><p>Parametrierung per Micro-USB mit akYtec Tool Pro; zusätzlich können Parameter über das Modbus-Netzwerk geändert werden. Relevant sind Betriebsart, Register, Datentyp und Anzeigeverhalten.</p></div>
+      </div>
+    </section>
+
+    <section id="modi" class="section reveal reveal-delay-1">
+      <div class="section-head">
+        <div>
+          <div class="section-id">SMI2-M</div>
+          <h2>Master-, Slave- und Spy-Betriebsart</h2>
+          <p class="lead">Die Besonderheit des SMI2-M liegt nicht nur in der RS485-/Modbus-Anbindung, sondern in der Art, wie das Gerät in die Kommunikationsstruktur eingebunden wird.</p>
+        </div>
+      </div>
+      <div class="grid g3">
+        <div class="card white"><h3>Master</h3><p>Das Gerät fragt einen Wert aktiv bei einem Slave ab und zeigt ihn lokal an. Diese Betriebsart eignet sich für einfache Punkt-zu-Punkt-Anzeigen.</p></div>
+        <div class="card white"><h3>Slave</h3><p>Das Gerät empfängt den Anzeigewert von einem übergeordneten Master, zum Beispiel einem PLC. Die Anzeige ist damit Teil einer bestehenden Kommunikationslogik.</p></div>
+        <div class="card white"><h3>Spy</h3><p>Das Gerät hört den bestehenden Busverkehr mit und zeigt definierte Werte an, ohne die Hauptlogik des Systems zu verändern. Das ist besonders nützlich bei Nachrüstungen in vorhandenen Modbus-Netzen.</p></div>
+      </div>
+    </section>
+
+    <section id="anwendungen" class="section reveal reveal-delay-2">
+      <div class="section-head">
+        <div>
+          <div class="section-id">Anwendungen</div>
+          <h2>Typische Einsatzfälle</h2>
+          <p class="lead">Die Produktlinie wird verständlicher, wenn sie mit konkreten Prozesssituationen verbunden wird.</p>
+        </div>
+      </div>
+      <table>
+        <thead><tr><th>Anwendung</th><th>Passendes Gerät</th><th>Technische Begründung</th></tr></thead>
+        <tbody>
+          <tr><td>Druckwert eines Tanks lokal anzeigen</td><td><span class="tag">ITP11</span><span class="tag">ITP17</span></td><td>Typischer 4–20-mA-Drucktransmitter; Skalierung z. B. 4 mA = 0 bar, 20 mA = 10 bar.</td></tr>
+          <tr><td>Temperatur eines Ofens überwachen</td><td><span class="tag">ITP17</span></td><td>Temperaturfühler wie TC, RTD oder Pyrometer; numerischer Wert und Farbzonen für Grenzbereiche.</td></tr>
+          <tr><td>Füllstand als Bereich oder Niveau darstellen</td><td><span class="tag">ITP15-M</span></td><td>Bargraph eignet sich für schnelle visuelle Bewertung von niedrig, normal, hoch oder kritisch.</td></tr>
+          <tr><td>Alarm an PLC oder Relais weitergeben</td><td><span class="tag">ITP17</span><span class="tag">ITP15-M</span></td><td>NPN-Transistorausgang kann einen Zustand weitergeben; besonders relevant bei Grenzwertüberschreitungen.</td></tr>
+          <tr><td>Wert aus PLC oder Controller anzeigen</td><td><span class="tag">SMI2-M</span></td><td>Der Wert liegt digital über RS485 / Modbus vor; lokale Anzeige ohne zusätzlichen Analogpfad.</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section id="vertrieb" class="section reveal reveal-delay-3">
+      <div class="section-head">
+        <div>
+          <div class="section-id">Vertrieb</div>
+          <h2>Fragen für Vertrieb und Business</h2>
+          <p class="lead">Für Vertrieb und Business ist nicht nur die Technik wichtig, sondern vor allem die Frage, welches Kundenproblem vorliegt und welche Produktlogik dahintersteht. Die folgenden Fragen helfen bei der ersten Einordnung.</p>
+        </div>
+      </div>
+      <div class="grid g3">
+        <div class="card white"><h3>1. Woher kommt der Wert?</h3><p>Direkt aus einem Sensor oder <span class="term-hint" tabindex="0" data-tip="Ein Transmitter wandelt die physikalische Messgröße eines Sensors in ein standardisiertes technisches Signal um, zum Beispiel 4–20 mA oder 0–10 V.">Transmitter</span>, oder bereits digital aus einem <span class="term-hint" tabindex="0" data-tip="Speicherprogrammierbare Steuerung. Ein PLC verarbeitet Signale und steuert Maschinen oder Anlagen.">PLC</span> bzw. <span class="term-hint" tabindex="0" data-tip="Kommunikationsprotokoll, mit dem Geräte Messwerte, Register und Zustände strukturiert austauschen.">Modbus</span>-Netzwerk?</p></div>
+        <div class="card white"><h3>2. Was will der Kunde sehen?</h3><p>Einen exakten Zahlenwert, eine schnelle Zustandsanzeige oder die lokale Sichtbarkeit eines bereits vorhandenen Netzwerkwerts?</p></div>
+        <div class="card white"><h3>3. Wird ein Ausgang benötigt?</h3><p>Soll nur angezeigt werden oder muss zusätzlich ein Zustand über einen <span class="term-hint" tabindex="0" data-tip="Elektronischer Ausgang zur Weitergabe eines Zustands an PLC, Relais oder weitere Logik.">NPN-Transistorausgang</span> an PLC, Relais oder eine weitere Logik weitergegeben werden?</p></div>
+        <div class="card white"><h3>4. Wie offen ist die Signalfrage?</h3><p>Steht die Signalart bereits fest oder soll ein Gerät mehrere mögliche Eingänge wie <span class="term-hint" tabindex="0" data-tip="Widerstandsthermometer, zum Beispiel Pt100 oder Pt1000. Die Temperatur wird über eine Widerstandsänderung erfasst.">RTD</span>, <span class="term-hint" tabindex="0" data-tip="Thermoelement. Temperaturfühler für höhere Temperaturbereiche, der eine kleine temperaturabhängige Spannung erzeugt.">TC</span>, <span class="term-hint" tabindex="0" data-tip="Berührungsloser Temperatursensor. Die Temperatur wird optisch erfasst, ohne den Prozess direkt zu berühren.">Pyrometer</span> oder U-/I-Signale abdecken?</p></div>
+        <div class="card white"><h3>5. Wer nimmt das Gerät in Betrieb?</h3><p>Muss die Parametrierung schnell direkt am Gerät erfolgen oder ist eine Konfiguration über <span class="term-hint" tabindex="0" data-tip="Konfigurationssoftware von akYtec für Parametrierung, Diagnose und Geräteeinstellungen per USB-Verbindung.">akYtec Tool Pro</span> sinnvoller?</p></div>
+        <div class="card white"><h3>6. Ist die Anlage neu oder bereits vorhanden?</h3><p>Bei bestehenden <span class="term-hint" tabindex="0" data-tip="Serielle industrielle Busschnittstelle für den Datenaustausch zwischen mehreren Geräten über zwei Leitungen.">RS485</span>-Netzen kann vor allem der <span class="term-hint" tabindex="0" data-tip="Betriebsart des SMI2-M, bei der das Gerät vorhandenen Busverkehr mithört und definierte Werte anzeigt, ohne die Hauptlogik des Systems zu verändern.">Spy-Modus</span> für Nachrüstungen relevant sein.</p></div>
+      </div>
+    </section>
+
+    <section id="kundensituationen" class="section reveal reveal-delay-4">
+      <div class="section-head">
+        <div>
+          <div class="section-id">Kundensituationen</div>
+          <h2>Typische Ausgangssituationen aus Kundenperspektive</h2>
+          <p class="lead">Diese Zuordnung hilft dabei, die Geräte nicht nur technisch, sondern auch im Kundengespräch sauber einzuordnen. Sie ersetzt keine Detailprüfung, bietet aber eine belastbare erste Orientierung.</p>
+        </div>
+      </div>
+      <table>
+        <thead><tr><th>Kundenaussage</th><th>Naheliegendes Gerät</th><th>Warum</th></tr></thead>
+        <tbody>
+          <tr><td>„Ich habe bereits ein <span class="term-hint" tabindex="0" data-tip="Standardisiertes analoges Stromsignal zur Übertragung eines Messwerts. 4 mA stehen typischerweise für den unteren, 20 mA für den oberen Messbereich.">4–20-mA</span>-Signal und brauche nur eine lokale Anzeige.“</td><td><span class="tag">ITP11</span></td><td>Der Anwendungsfall ist klar definiert: ein vorhandener Stromschleifenwert soll direkt und ohne zusätzliche Hilfsspannung lokal angezeigt werden.</td></tr>
+          <tr><td>„Ich weiß noch nicht genau, welche Signalart der Kunde am Ende einsetzen wird.“</td><td><span class="tag">ITP17</span></td><td>Der universelle Eingang reduziert das Risiko einer frühen Fehlfestlegung und deckt mehrere Sensor- und Signaltypen mit einem Gerät ab.</td></tr>
+          <tr><td>„Der Bediener muss den Zustand sofort sehen, nicht erst eine Zahl interpretieren.“</td><td><span class="tag">ITP15-M</span></td><td>Die <span class="term-hint" tabindex="0" data-tip="Eine LED-Bargraph-Anzeige stellt den Messwert nicht primär als Zahl, sondern als Balken oder Niveau dar. Das erleichtert die schnelle visuelle Bewertung von Zustand, Tendenz oder Auslastung.">Bargraph-Anzeige</span> ist für Niveau-, Tendenz- und Bereichsbewertung oft geeigneter als eine reine Zahlenanzeige.</td></tr>
+          <tr><td>„Der Wert liegt schon im <span class="term-hint" tabindex="0" data-tip="Speicherprogrammierbare Steuerung. Ein PLC verarbeitet Signale und steuert Maschinen oder Anlagen.">PLC</span> oder im <span class="term-hint" tabindex="0" data-tip="Kommunikationsprotokoll, mit dem Geräte Messwerte, Register und Zustände strukturiert austauschen.">Modbus</span>-Netz vor.“</td><td><span class="tag">SMI2-M</span></td><td>Dann ist keine klassische Analogeingangsanzeige erforderlich, sondern eine Anzeige, die Netzwerkwerte lokal sichtbar macht.</td></tr>
+          <tr><td>„Ich möchte zusätzlich einen Zustand weitergeben, nicht nur anzeigen.“</td><td><span class="tag">ITP17</span><span class="tag">ITP15-M</span></td><td>Beide Geräte verfügen über einen <span class="term-hint" tabindex="0" data-tip="Elektronischer Ausgang zur Weitergabe eines Zustands an PLC, Relais oder weitere Logik.">NPN-Transistorausgang</span> und eignen sich deshalb für Anzeige plus Zustandsweitergabe.</td></tr>
+          <tr><td>„Die Anlage läuft bereits, ich will ohne große Änderungen nachrüsten.“</td><td><span class="tag">SMI2-M</span></td><td>Vor allem im <span class="term-hint" tabindex="0" data-tip="Betriebsart des SMI2-M, bei der das Gerät vorhandenen Busverkehr mithört und definierte Werte anzeigt, ohne die Hauptlogik des Systems zu verändern.">Spy-Modus</span> kann ein vorhandenes Netz genutzt werden, ohne die übergeordnete Kommunikationslogik grundsätzlich umzubauen.</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section id="praxisbeispiel" class="section reveal reveal-delay-3">
+      <div class="section-head">
+        <div>
+          <div class="section-id">Praxisbeispiel</div>
+          <h2>Drucküberwachung an einem Tank</h2>
+          <p class="lead">Dieses Beispiel verbindet Signal, Skalierung, Anzeige, Farblogik und Ausgang in einem durchgängigen Anwendungsfall.</p>
+        </div>
+      </div>
+      <div class="grid g2">
+        <div class="card white">
+          <h3>Ausgangssituation</h3>
+          <ul>
+            <li>Drucktransmitter: 0–10 bar</li>
+            <li>Signal: 4–20 mA</li>
+            <li>Anzeige: ITP17</li>
+            <li>Skalierung: 4 mA = 0 bar, 20 mA = 10 bar</li>
+            <li>Grenzwerte: 8 bar Warnbereich, 9 bar Alarmbereich</li>
+            <li>Ausgang: NPN-Signal an PLC</li>
+          </ul>
+        </div>
+        <div class="card white">
+          <h3>Signalverlauf</h3>
+          <div class="technical-flow" style="grid-template-columns:1fr">
+            <div class="flow-step"><div class="flow-no">01</div><strong>Druck steigt</strong><span>Der reale Prozesswert verändert sich im Tank.</span></div>
+            <div class="flow-step"><div class="flow-no">02</div><strong>Transmitter sendet 4–20 mA</strong><span>Das elektrische Signal bildet den Druckbereich ab.</span></div>
+            <div class="flow-step"><div class="flow-no">03</div><strong>ITP17 skaliert den Wert</strong><span>Aus 12 mA werden z. B. 5 bar.</span></div>
+            <div class="flow-step"><div class="flow-no">04</div><strong>Anzeige und Reaktion</strong><span>Farbzone ändert sich; NPN-Ausgang informiert PLC.</span></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="fragen" class="section reveal reveal-delay-4">
+      <div class="section-head">
+        <div>
+          <div class="section-id">Auswahlfragen</div>
+          <h2>Sechs Fragen zur richtigen Produktauswahl</h2>
+          <p class="lead">Diese Fragen führen schnell von der Anwendung zum passenden Gerät.</p>
+        </div>
+      </div>
+      <div class="grid g3">
+        <div class="card white"><h3>1. Woher kommt der Wert?</h3><p>Direkt vom Sensor oder bereits aus einem Netzwerk? Netzwerkdaten führen typischerweise zum SMI2-M.</p></div>
+        <div class="card white"><h3>2. Welche Signalart liegt vor?</h3><p>4–20 mA, 0–10 V, RTD, TC, Pyrometer oder RS485 / Modbus bestimmen die technische Richtung.</p></div>
+        <div class="card white"><h3>3. Zahl oder Zustand?</h3><p>Exakter Zahlenwert spricht für ITP11 oder ITP17. Schneller visueller Zustand spricht für ITP15-M.</p></div>
+        <div class="card white"><h3>4. Wird ein Ausgang benötigt?</h3><p>Wenn PLC, Relais oder eine weitere Logik angesteuert werden sollen, sind ITP17 oder ITP15-M relevant.</p></div>
+        <div class="card white"><h3>5. Wie flexibel muss das Gerät sein?</h3><p>Bei mehreren möglichen Signalarten ist der ITP17 die stärkere universelle Lösung.</p></div>
+        <div class="card white"><h3>6. Welche Parameter sind bekannt?</h3><p>Messbereich, Grenzwerte, Register, Datentyp und Kommunikationsparameter sollten vor Inbetriebnahme geklärt sein.</p></div>
+      </div>
+    </section>
+
+    <section id="fehler" class="section reveal reveal-delay-1">
+      <div class="section-head">
+        <div>
+          <div class="section-id">Prüfpunkte</div>
+          <h2>Häufige Fehler vermeiden</h2>
+          <p class="lead">Diese Punkte verbessern die technische Einordnung und reduzieren Fehlentscheidungen bei Auswahl und Inbetriebnahme.</p>
+        </div>
+      </div>
+      <table>
+        <thead><tr><th>Fehler</th><th>Warum kritisch</th><th>Prüfpunkt</th></tr></thead>
+        <tbody>
+          <tr><td>Signalart nicht geklärt</td><td>Falsches Gerät oder falsche Parametrierung möglich.</td><td>4–20 mA, 0–10 V, RTD, TC, Pyrometer oder Modbus eindeutig bestimmen.</td></tr>
+          <tr><td>Analog und Modbus verwechselt</td><td>ITP-Geräte und SMI2-M erfüllen unterschiedliche Rollen.</td><td>Direktes Sensorsignal oder digitaler Netzwerkwert?</td></tr>
+          <tr><td>Skalierung nicht definiert</td><td>Der angezeigte Wert kann technisch korrekt gemessen, aber falsch interpretiert werden.</td><td>Minimal- und Maximalwert festlegen.</td></tr>
+          <tr><td>Ausgang nicht berücksichtigt</td><td>Alarm- oder Statusweitergabe fehlt später im System.</td><td>NPN-Transistorausgang und Grenzwertlogik vorab klären.</td></tr>
+          <tr><td>Installationsumgebung ignoriert</td><td>Feuchte, Störungen, Montageort oder Leitungsführung können die Anwendung beeinflussen.</td><td>IP-Schutz, Umgebung, EMV und Leitungsführung prüfen.</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+  </main>
+
+  <footer>
+    <div class="wrap">
+      <div>Digitale Prozessanzeigen</div>
+      <div class="footer-note">Konzept und Aufbereitung: Fernando B. Vasquez</div>
+    </div>
+  </footer>
+
+  <script>
+    const productData = {
+      itp11: {
+        title: 'ITP11',
+        badge: '4–20-mA-Schleifenanzeige',
+        intro: 'Kompakte numerische Prozessanzeige für Standard-Transmitter mit 4–20-mA-Ausgang. Das Gerät ist für die direkte lokale Anzeige eines einzelnen analogen Prozesswerts ausgelegt.',
+        image: 'assets/img/produkt-itp11.jpg',
+        imageLabel: 'produkt-itp11.jpg',
+        docs: [
+          { label: 'Datenblatt', file: 'assets/docs/itp11-datenblatt.pdf' }
+        ],
+        fields: {
+          what: 'Kompakte Prozessanzeige für einen standardisierten Stromschleifenwert.',
+          input: '4–20 mA.',
+          display: 'Vierstellige numerische Anzeige des skalierten Prozesswerts.',
+          action: 'Lokale Anzeige, Skalierung, Filterung und Alarmanzeige.',
+          fit: 'Standardanwendungen mit Druck, Füllstand, Durchfluss oder ähnlichen 4–20-mA-Messwerten.',
+          setup: 'Direkt am Gerät über die rückseitigen Tasten. Keine PC-Software erforderlich.',
+          question: 'Welcher Messbereich soll auf 4 mA und 20 mA abgebildet werden?'
+        },
+        connections: {
+          lead: 'Der ITP11 wird direkt in den 4–20-mA-Signalpfad eingebunden und benötigt keine separate Hilfsspannung.',
+          items: [
+            {
+              title: 'Direktes 4–20-mA-Signal',
+              text: 'Sensor oder Transmitter liefert ein Stromsignal direkt in den Anzeigekreis. Der ITP11 wird aus der Stromschleife versorgt und zeigt den skalierten Wert lokal an.',
+              image: 'assets/img/anschluss-itp11-4-20ma.png',
+              imageLabel: 'anschluss-itp11-4-20ma.png',
+              imageAlt: 'Anschluss ITP11 4-20 mA'
+            }
+          ]
+        },
+        tabs: {
+          Übersicht: 'Der ITP11 ist für den klar definierten Standardfall ausgelegt, dass ein vorhandener 4–20-mA-Messwert lokal angezeigt werden soll. Die Stärke liegt in der einfachen Integration in eine Stromschleife.',
+          Merkmale: '<div class="accordion"><div class="acc open"><button onclick="toggleAcc(this)">Kerneigenschaften<span>−</span></button><div class="content">4–20-mA-Eingang, vierstellige Anzeige, Skalierung auf physikalische Einheiten, Dezimalpunktkonfiguration, digitale Filterung und Alarmdarstellung.</div></div><div class="acc"><button onclick="toggleAcc(this)">Technischer Nutzen<span>+</span></button><div class="content">Die Anzeige macht aus einem elektrischen Stromsignal einen verständlichen Prozesswert, zum Beispiel bar, Prozent oder Liter pro Minute.</div></div></div>',
+          Anschluss: 'Der ITP11 wird in den 4–20-mA-Signalpfad eingebunden. Entscheidend ist, dass der Messbereich richtig skaliert wird: 4 mA entspricht dem unteren Wert, 20 mA dem oberen Wert.',
+          Anwendung: 'Geeignet für einfache lokale Visualisierung in Maschinen, Anlagen und Schaltschränken, wenn ein einzelner Standard-Messwert sichtbar gemacht werden soll.',
+          Parametrierung: 'Der ITP11 wird direkt über die Tasten am Gerät programmiert. Laut Dokumentation befinden sich die Funktionstasten auf der Rückseite; eine USB- oder PC-Konfiguration ist im vorliegenden Datenblatt nicht vorgesehen.'
+        }
+      },
+      itp17: {
+        title: 'ITP17',
+        badge: 'Universeller Prozessindikator',
+        intro: 'Universeller numerischer Prozessindikator für unterschiedliche Sensor- und Signaltypen. Das Gerät verbindet breite Eingangsfähigkeit mit lokaler Anzeige und zustandsbezogener Signalisierung.',
+        image: 'assets/img/produkt-itp17.jpg',
+        imageLabel: 'produkt-itp17.jpg',
+        docs: [
+          { label: 'Datenblatt', file: 'assets/docs/itp17-datenblatt.pdf' }
+        ],
+        fields: {
+          what: 'Universeller Prozessindikator für gemischte Signal- und Sensorwelten.',
+          input: 'RTD, TC, Pyrometer sowie Gleichspannungs- und Gleichstromsignale wie 0–10 V und 4–20 mA.',
+          display: 'Numerische Anzeige mit farbcodierter Zustandsanzeige.',
+          action: 'NPN-Transistorausgang für Grenzwert- oder Zustandsweitergabe.',
+          fit: 'Flexible Anwendungen mit wechselnden Signaltypen oder Bedarf an Alarmweitergabe.',
+          setup: 'Über Tasten am Gerät und zusätzlich per micro-USB mit akYtec Tool Pro.',
+          question: 'Welche Signalart liefert der Sensor und soll ein Schaltausgang genutzt werden?'
+        },
+        connections: {
+          lead: 'Der ITP17 benötigt eine 24-VDC-Versorgung, verarbeitet den Eingangswert und kann einen Zustand über den NPN-Ausgang weitergeben.',
+          items: [
+            {
+              title: 'Versorgung und Schaltausgang',
+              text: 'Die Anzeige wird mit 24 VDC versorgt, wertet den angeschlossenen Sensor oder das U-/I-Signal aus und kann über den NPN-Ausgang ein PLC oder Relais informieren.',
+              image: 'assets/img/anschluss-24vdc-npn-plc.png',
+              imageLabel: 'anschluss-24vdc-npn-plc.png',
+              imageAlt: 'Anschluss ITP17 24VDC und NPN'
+            }
+          ]
+        },
+        tabs: {
+          Übersicht: 'Der ITP17 deckt mehrere technische Welten ab: klassische U-/I-Signale, Temperatursensorik inklusive RTD und Thermoelementen sowie Pyrometer. Damit eignet er sich als universelles Gerät innerhalb der Linie.',
+          Merkmale: '<div class="accordion"><div class="acc open"><button onclick="toggleAcc(this)">Kerneigenschaften<span>−</span></button><div class="content">Universaleingang für RTD, TC, Pyrometer sowie U-/I-Signale, numerische Anzeige, definierbare Farbbereiche, Grenzwertauswertung und NPN-Transistorausgang.</div></div><div class="acc"><button onclick="toggleAcc(this)">Technischer Nutzen<span>+</span></button><div class="content">Der Universaleingang reduziert Variantenvielfalt. Der Ausgang ermöglicht die Weitergabe eines Zustands an ein PLC, Relais oder eine übergeordnete Logik.</div></div></div>',
+          Anschluss: 'Das Gerät wird mit 24 VDC versorgt, erhält das Sensorsignal am Eingang und kann bei definierten Zuständen einen NPN-Ausgang schalten.',
+          Anwendung: 'Besonders passend für Anwendungen, in denen unterschiedliche Sensorarten, exakte numerische Anzeige und Grenzwertreaktion kombiniert werden.',
+          Parametrierung: 'Der ITP17 unterstützt beide Wege: lokale Bedienung am Gerät und Konfiguration per micro-USB mit akYtec Tool Pro. Das ist sinnvoll, wenn im Feld schnell angepasst werden muss, aber für die Inbetriebnahme eine komfortablere PC-Konfiguration gewünscht ist.'
+        }
+      },
+      itp15m: {
+        title: 'ITP15-M',
+        badge: 'LED-Bargraph-Anzeige',
+        intro: 'LED-Bargraph-Anzeige zur schnellen visuellen Einordnung von Prozesszuständen. Der Schwerpunkt liegt auf der unmittelbaren Erfassung von Niveau, Tendenz oder Abweichung vom Sollbereich.',
+        image: 'assets/img/produkt-itp15-m.jpg',
+        imageLabel: 'produkt-itp15-m.jpg',
+        docs: [
+          { label: 'Datenblatt', file: 'assets/docs/itp15-m-datenblatt.pdf' }
+        ],
+        fields: {
+          what: 'Mehrfarbige LED-Bargraph-Anzeige für Niveau- und Zustandsdarstellung.',
+          input: 'RTD, TC, Pyrometer sowie Gleichspannungs- und Gleichstromsignale.',
+          display: '10-Segment-LED-Bargraph mit farblicher Zustandsdarstellung.',
+          action: 'Farbwechsel, Zonendarstellung und NPN-Transistorausgang.',
+          fit: 'Füllstand, Auslastung, Temperaturzonen, Druckniveau oder andere Zustandsanzeigen mit schneller visueller Erfassung.',
+          setup: 'Grundfunktionen am Gerät, vollständige Parametrierung per micro-USB mit akYtec Tool Pro.',
+          question: 'Soll ein exakter Zahlenwert oder vor allem ein Zustand auf einen Blick sichtbar sein?'
+        },
+        connections: {
+          lead: 'Der ITP15-M wird mit 24 VDC versorgt und eignet sich für Anwendungen, bei denen neben der lokalen Bargraph-Anzeige auch eine Zustandsweitergabe gebraucht wird.',
+          items: [
+            {
+              title: 'Versorgung und Schaltausgang',
+              text: 'Die Anzeige wird mit 24 VDC versorgt, visualisiert den Eingangsbereich als Bargraph und kann bei definierten Zuständen über den NPN-Ausgang weiter schalten.',
+              image: 'assets/img/anschluss-24vdc-npn-plc.png',
+              imageLabel: 'anschluss-24vdc-npn-plc.png',
+              imageAlt: 'Anschluss ITP15-M 24VDC und NPN'
+            }
+          ]
+        },
+        tabs: {
+          Übersicht: 'Der ITP15-M ist dann sinnvoll, wenn nicht der exakte Zahlenwert, sondern die schnelle visuelle Einordnung des Prozesszustands im Vordergrund steht. Die Bargraph-Darstellung erleichtert das Erkennen von Niveau, Tendenz und Abweichung.',
+          Merkmale: '<div class="accordion"><div class="acc open"><button onclick="toggleAcc(this)">Kerneigenschaften<span>−</span></button><div class="content">Mehrfarbiger LED-Bargraph mit 10 Segmenten, Zustandsvisualisierung, Grenzwertlogik und NPN-Transistorausgang.</div></div><div class="acc"><button onclick="toggleAcc(this)">Technischer Nutzen<span>+</span></button><div class="content">Der Messwert wird nicht nur numerisch interpretiert, sondern als Niveau und Zustand dargestellt. Das reduziert Interpretationsaufwand am Bedienpanel.</div></div></div>',
+          Anschluss: 'Das Gerät wird mit 24 VDC versorgt, verarbeitet das Eingangssignal und kann bei definierten Zuständen einen Ausgang schalten.',
+          Anwendung: 'Sinnvoll, wenn ein Verlauf, eine Zone oder ein Bereich wichtiger ist als die reine Zahl, zum Beispiel bei Füllstand oder Prozessauslastung.',
+          Parametrierung: 'Beim ITP15-M sind Basisfunktionen über das Gerät erreichbar, die vollständigen Einstellungen laut Dokumentation aber nur über die USB-Verbindung mit akYtec Tool Pro verfügbar. Das betrifft vor allem die detaillierte Segment- und Farblogik.'
+        }
+      },
+      smi2m: {
+        title: 'SMI2-M',
+        badge: 'RS485-Mehrfarbenanzeige',
+        intro: 'Mehrfarbige RS485-Anzeige für vernetzte Prozessdaten. Das Gerät macht Werte aus einer Modbus-Struktur lokal sichtbar und verbindet Kommunikationsebene mit Anzeigeebene.',
+        image: 'assets/img/produkt-smi2-m.jpg',
+        imageLabel: 'produkt-smi2-m.jpg',
+        docs: [
+          { label: 'Datenblatt', file: 'assets/docs/itpsim2-m-datenblatt.pdf' }
+        ],
+        fields: {
+          what: 'RS485-Anzeige für digitale Prozesswerte aus einem Modbus-Netzwerk.',
+          input: 'RS485 mit Modbus RTU/ASCII.',
+          display: 'Numerische Anzeige empfangener Netzwerkwerte.',
+          action: 'Betriebsarten Master, Slave oder Spy; lokale Darstellung digitaler Werte.',
+          fit: 'PLC, Controller, Regler, Zähler oder vernetzte Maschinen mit Modbus-Daten.',
+          setup: 'Per Micro-USB mit akYtec Tool Pro, zusätzlich Parameteränderung über das Modbus-Netzwerk möglich.',
+          question: 'Welche Modbus-Adresse und welches Register enthalten den gewünschten Wert?'
+        },
+        connections: {
+          lead: 'Der SMI2-M wird in ein RS485-Netzwerk eingebunden und liest den anzuzeigenden Wert über Modbus RTU oder ASCII.',
+          items: [
+            {
+              title: 'Digitale Kommunikation',
+              text: 'Der Wert stammt aus einem RS485-/Modbus-Netzwerk und wird lokal dargestellt. Ein separater analoger Messpfad ist nicht erforderlich.',
+              image: 'assets/img/anschluss-smi2m-rs485-modbus.png',
+              imageLabel: 'anschluss-smi2m-rs485-modbus.png',
+              imageAlt: 'Anschluss SMI2-M RS485 Modbus'
+            }
+          ]
+        },
+        tabs: {
+          Übersicht: 'Der SMI2-M ist kein klassischer Analogeingangsindikator. Sein Schwerpunkt liegt auf der Anzeige von bereits digital vorliegenden Werten aus einem Kommunikationsnetzwerk.',
+          Merkmale: '<div class="accordion"><div class="acc open"><button onclick="toggleAcc(this)">Kerneigenschaften<span>−</span></button><div class="content">RS485-Schnittstelle, Modbus RTU/ASCII, numerische Anzeige, Betriebsrollen Master, Slave und Spy.</div></div><div class="acc"><button onclick="toggleAcc(this)">Technischer Nutzen<span>+</span></button><div class="content">RS485 beschreibt die physische Kommunikation. Modbus definiert den Datenaustausch. Das Gerät greift auf einen digitalen Wert zu und stellt ihn lokal dar.</div></div></div>',
+          Anschluss: 'Der SMI2-M wird in eine RS485-/Modbus-Struktur integriert. Der Wert wird nicht direkt als Sensorstrom oder Sensorspannung gemessen, sondern aus dem Netzwerk gelesen oder empfangen.',
+          Anwendung: 'Passend, wenn Werte bereits in PLCs, Reglern, Zählern oder Controllern vorhanden sind und lokal sichtbar gemacht werden sollen.',
+          Parametrierung: 'Der SMI2-M wird typischerweise per Micro-USB mit akYtec Tool Pro konfiguriert. Zusätzlich erlaubt die Dokumentation Parameteränderungen über das Modbus-Netzwerk, was ihn deutlich netzwerkorientierter macht als die analogen ITP-Geräte.'
+        }
+      }
+    };
+
+    const signalData = {
+      ma: {
+        title: '4–20 mA',
+        body: '<p>4–20 mA ist der klassische Industriestandard für analoge Prozesswerte. Der Messwert wird als Stromsignal übertragen. 4 mA stehen üblicherweise für den Minimalwert, 20 mA für den Maximalwert. Das Verfahren ist robust und für industrielle Umgebungen sehr gut geeignet.</p><div class="demo"><div class="demo-title">Skalierungsbeispiel: 0 bis 10 bar</div><input id="maSlider" type="range" min="4" max="20" step="0.1" value="12" oninput="updateScaleDemo()"><div class="demo-row"><span id="maValue">12.0 mA</span><span id="barValue">5.0 bar</span></div></div>'
+      },
+      volt: {
+        title: '0–10 V',
+        body: '<p>0–10 V ist eine proportionale Spannungsschnittstelle. 0 V repräsentieren den unteren Bereich, 10 V den oberen Bereich. Das Prinzip ist direkt verständlich und wird in analogen Anwendungen häufig eingesetzt.</p><div class="demo"><div class="demo-title">Technischer Kern</div><div>Spannungssignal, interne Skalierung, lokale Anzeige des zugeordneten Prozesswerts.</div></div>'
+      },
+      rtd: {
+        title: 'RTD / Pt100 / Pt1000',
+        body: '<p>RTD-Sensoren bilden Temperatur über eine Widerstandsänderung ab. Typische Vertreter sind Pt100 und Pt1000. Die Anzeige misst den Widerstand und errechnet daraus den Temperaturwert.</p><div class="demo"><div class="demo-title">Technischer Kern</div><div>Präzise temperaturbezogene Auswertung mit stabiler Messcharakteristik.</div></div>'
+      },
+      tc: {
+        title: 'TC / Thermoelement',
+        body: '<p>Thermoelemente erzeugen eine kleine Spannung in Abhängigkeit von der Temperatur. Sie eignen sich besonders für höhere Temperaturbereiche und robuste Prozessbedingungen.</p><div class="demo"><div class="demo-title">Technischer Kern</div><div>Direkte Temperaturerfassung für thermisch anspruchsvolle Anwendungen.</div></div>'
+      },
+      pyro: {
+        title: 'Pyrometer',
+        body: '<p>Pyrometer erfassen Temperatur berührungslos. Laut Dokumentation werden sie von ITP17 und ITP15-M als unterstützte Sensorkategorie geführt und eignen sich für Prozesse, in denen hohe Temperaturen oder schwierige Montagebedingungen vorliegen.</p><div class="demo"><div class="demo-title">Technischer Kern</div><div>Berührungslose Temperaturmessung mit lokaler Anzeige und Auswertung im Panelgerät.</div></div>'
+      },
+      modbus: {
+        title: 'RS485 / Modbus',
+        body: '<p>RS485 beschreibt die physische Schnittstelle, Modbus das Kommunikationsprotokoll. Die Anzeige erhält den Messwert nicht über einen analogen Eingang, sondern über eine digitale Netzwerkkommunikation.</p><div class="demo"><div class="demo-title">Technischer Kern</div><div>Lokale Sichtbarkeit eines bereits digital vorhandenen Prozesswerts.</div></div>'
+      }
+    };
+
+    // Carga imagenes diferidas y activa el estado visual cuando estan listas.
+    function loadImageSlot(slot) {
+      const img = slot.querySelector('img');
+      const src = slot.dataset.src;
+      img.src = src;
+      img.onload = () => slot.classList.add('loaded');
+      img.onerror = () => slot.classList.remove('loaded');
+    }
+
+    // Inserta ayudas breves sobre terminos tecnicos dentro del contenido renderizado.
+    function withHints(text) {
+      return text
+        .replaceAll('4–20 mA', '<span class="term-hint" tabindex="0" data-tip="Standardisiertes analoges Stromsignal zur Übertragung eines Messwerts. 4 mA stehen typischerweise für den unteren, 20 mA für den oberen Messbereich.">4–20 mA</span>')
+        .replaceAll('0–10 V', '<span class="term-hint" tabindex="0" data-tip="Analoges Spannungssignal, bei dem der Messwert proportional zwischen 0 und 10 Volt abgebildet wird.">0–10 V</span>')
+        .replaceAll('RTD', '<span class="term-hint" tabindex="0" data-tip="Widerstandsthermometer, zum Beispiel Pt100 oder Pt1000. Die Temperatur wird über eine Widerstandsänderung erfasst.">RTD</span>')
+        .replaceAll('TC', '<span class="term-hint" tabindex="0" data-tip="Thermoelement. Temperaturfühler für höhere Temperaturbereiche, der eine kleine temperaturabhängige Spannung erzeugt.">TC</span>')
+        .replaceAll('Pyrometer', '<span class="term-hint" tabindex="0" data-tip="Berührungsloser Temperatursensor. Die Temperatur wird optisch erfasst, ohne den Prozess direkt zu berühren.">Pyrometer</span>')
+        .replaceAll('RS485', '<span class="term-hint" tabindex="0" data-tip="Serielle industrielle Busschnittstelle für den Datenaustausch zwischen mehreren Geräten über zwei Leitungen.">RS485</span>')
+        .replaceAll('Modbus', '<span class="term-hint" tabindex="0" data-tip="Kommunikationsprotokoll, mit dem Geräte Messwerte, Register und Zustände strukturiert austauschen.">Modbus</span>')
+        .replaceAll('NPN-Transistorausgang', '<span class="term-hint" tabindex="0" data-tip="Elektronischer Schaltausgang zur Weitergabe eines Zustands an eine Steuerung, ein Relais oder eine weitere Logik.">NPN-Transistorausgang</span>');
+    }
+
+    // Inicializa las imagenes visibles al cargar la pagina.
+    function initStaticImages() {
+      document.querySelectorAll('.image-slot[data-src]').forEach(loadImageSlot);
+
+      document.querySelectorAll('.product-card').forEach(card => {
+        const img = card.querySelector('img');
+        const src = card.dataset.img;
+        img.src = src;
+        img.onload = () => card.classList.add('loaded');
+        img.onerror = () => card.classList.remove('loaded');
+      });
+    }
+
+    // Dibuja el bloque de conexiones segun el producto activo.
+    function renderConnections(key) {
+      const data = productData[key];
+      const lead = document.getElementById('connectionLead');
+      const grid = document.getElementById('connectionGrid');
+      lead.textContent = data.connections.lead;
+      grid.innerHTML = data.connections.items.map(item => (
+        '<div class="card white">' +
+          '<h3>' + item.title + '</h3>' +
+          '<p>' + item.text + '</p>' +
+          '<div class="image-slot" data-src="' + item.image + '">' +
+            '<img alt="' + item.imageAlt + '" />' +
+            '<div class="placeholder"><strong>Anschlussgrafik</strong><div class="filename">' + item.imageLabel + '</div></div>' +
+          '</div>' +
+        '</div>'
+      )).join('');
+      grid.querySelectorAll('.image-slot[data-src]').forEach(loadImageSlot);
+    }
+
+    // Fuerza una animacion corta al actualizar bloques de contenido.
+    function triggerRefresh(el) {
+      if (!el) return;
+      el.classList.remove('refresh');
+      void el.offsetWidth;
+      el.classList.add('refresh');
+    }
+
+    // Renderiza el detalle completo del producto seleccionado.
+    function renderProduct(key) {
+      const data = productData[key];
+      document.getElementById('detailTitle').textContent = data.title;
+      document.getElementById('detailBadge').textContent = data.badge;
+      document.getElementById('detailIntro').textContent = data.intro;
+      document.getElementById('fieldWhat').textContent = data.fields.what;
+      document.getElementById('fieldInput').innerHTML = withHints(data.fields.input);
+      document.getElementById('fieldDisplay').innerHTML = withHints(data.fields.display);
+      document.getElementById('fieldAction').innerHTML = withHints(data.fields.action);
+      document.getElementById('fieldFit').innerHTML = withHints(data.fields.fit);
+      document.getElementById('fieldSetup').innerHTML = withHints(data.fields.setup);
+      document.getElementById('fieldQuestion').textContent = data.fields.question;
+
+      const tabsWrap = document.getElementById('productTabs');
+      const panelsWrap = document.getElementById('productPanels');
+      const docsWrap = document.getElementById('productDocs');
+      const keys = Object.keys(data.tabs);
+      tabsWrap.innerHTML = keys.map((k, i) => '<button class="tab-btn ' + (i === 0 ? 'active' : '') + '" onclick="openProductTab(event, \'p-' + i + '\')">' + k + '</button>').join('');
+      panelsWrap.innerHTML = keys.map((k, i) => '<div class="tab-panel ' + (i === 0 ? 'active' : '') + '" id="p-' + i + '">' + data.tabs[k] + '</div>').join('');
+      docsWrap.innerHTML = data.docs.map(doc => '<a class="doc-link" href="' + doc.file + '" target="_blank" rel="noopener noreferrer"><div><strong>' + doc.label + '</strong><span>' + doc.file + '</span></div><span>PDF</span></a>').join('');
+
+      const slot = document.getElementById('detailImageSlot');
+      const img = document.getElementById('detailImage');
+      const ph = document.getElementById('detailImagePlaceholder');
+      const detailWrap = document.querySelector('.product-detail');
+      ph.innerHTML = '<strong>Produktbild</strong><div class="filename">' + data.imageLabel + '</div>';
+      img.onload = () => slot.classList.add('loaded');
+      img.onerror = () => slot.classList.remove('loaded');
+      img.src = data.image;
+      renderConnections(key);
+      triggerRefresh(detailWrap);
+    }
+
+    // Cambia entre pestanas dentro del panel de detalle.
+    function openProductTab(event, id) {
+      const detail = event.currentTarget.closest('.detail-copy');
+      detail.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+      detail.querySelectorAll('.tab-panel').forEach(panel => panel.classList.remove('active'));
+      event.currentTarget.classList.add('active');
+      document.getElementById(id).classList.add('active');
+    }
+
+    // Abre o cierra acordeones informativos dentro del detalle.
+    function toggleAcc(btn) {
+      const acc = btn.parentElement;
+      const isOpen = acc.classList.contains('open');
+      acc.parentElement.querySelectorAll('.acc').forEach(a => {
+        a.classList.remove('open');
+        a.querySelector('button span').textContent = '+';
+      });
+      if (!isOpen) {
+        acc.classList.add('open');
+        btn.querySelector('span').textContent = '−';
+      }
+    }
+
+    // Muestra la explicacion tecnica del tipo de senal elegido.
+    function renderSignal(key) {
+      const data = signalData[key];
+      const signalDisplay = document.getElementById('signalDisplay');
+      signalDisplay.innerHTML = '<h3>' + data.title + '</h3>' + data.body;
+      triggerRefresh(signalDisplay);
+      if (key === 'ma') updateScaleDemo();
+    }
+
+    // Actualiza el ejemplo de conversion para la senal 4-20 mA.
+    function updateScaleDemo() {
+      const slider = document.getElementById('maSlider');
+      if (!slider) return;
+      const ma = parseFloat(slider.value);
+      const bar = ((ma - 4) / 16) * 10;
+      document.getElementById('maValue').textContent = ma.toFixed(1) + ' mA';
+      document.getElementById('barValue').textContent = bar.toFixed(1) + ' bar';
+    }
+
+    // Propone un equipo segun la necesidad seleccionada por el usuario.
+    function recommend() {
+      const value = document.getElementById('need').value;
+      const out = {
+        simple: {
+          model: 'ITP11',
+          text: 'Zuordnung für eine direkte numerische Anzeige eines vorhandenen 4–20-mA-Messwerts.',
+          reason: 'Klare Spezialisierung auf den Standard-Analogpfad ohne zusätzliche Komplexität.',
+          check: 'Messbereich klären: Welcher reale Wert entspricht 4 mA und welcher 20 mA?'
+        },
+        universal: {
+          model: 'ITP17',
+          text: 'Zuordnung für variable Eingangssituationen mit unterschiedlichen Sensor- oder Signaltypen.',
+          reason: 'Universaleingang und erweiterte Zustandslogik decken mehrere technische Szenarien ab.',
+          check: 'Signalart und gewünschte Grenzwertreaktion prüfen.'
+        },
+        visual: {
+          model: 'ITP15-M',
+          text: 'Zuordnung für Anwendungen, bei denen der Zustand des Prozesses visuell im Vordergrund steht.',
+          reason: 'Bargraph und Farblogik übersetzen den Messwert in eine unmittelbar erfassbare Zustandsdarstellung.',
+          check: 'Klären, welche Bereiche normal, Warnung und kritisch darstellen sollen.'
+        },
+        network: {
+          model: 'SMI2-M',
+          text: 'Zuordnung für Werte, die bereits im RS485-/Modbus-System vorhanden sind.',
+          reason: 'Das Gerät ist auf die lokale Anzeige digitaler Netzwerkwerte ausgelegt.',
+          check: 'Modbus-Adresse, Register, Datentyp und Kommunikationsparameter prüfen.'
+        }
+      };
+      const r = out[value];
+      const recommendation = document.getElementById('recommendation');
+      recommendation.innerHTML = '<h3>' + r.model + '</h3><p>' + r.text + '</p><p><strong>Technische Begründung:</strong> ' + r.reason + '</p><p><strong>Zu prüfen:</strong> ' + r.check + '</p>';
+      triggerRefresh(recommendation);
+    }
+
+    // Cierra la portada inicial y habilita la navegacion del contenido.
+    function openPresentation() {
+      const cover = document.getElementById('coverScreen');
+      cover.classList.add('hidden');
+      document.body.classList.remove('cover-active');
+    }
+
+    document.querySelectorAll('.product-card').forEach(card => {
+      card.addEventListener('click', () => {
+        document.querySelectorAll('.product-card').forEach(c => c.classList.remove('active'));
+        card.classList.add('active');
+        renderProduct(card.dataset.product);
+      });
+    });
+
+    document.querySelectorAll('.signal-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.signal-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        renderSignal(btn.dataset.signal);
+      });
+    });
+
+    initStaticImages();
+    renderProduct('itp11');
+    renderSignal('ma');
+    recommend();
+  </script>
+</body>
+</html>
